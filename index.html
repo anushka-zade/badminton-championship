@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#091321">
+<meta name="description" content="Friends Badminton Championship — live fixtures, scores, league points and knockout results.">
+<title>Friends Badminton Championship</title>
+<style>
+:root{
+  color-scheme:dark;--bg:#091321;--panel:#121e31;--panel2:#1b304b;
+  --line:#2d405c;--text:#f5f7fb;--muted:#aab8cc;--gold:#f3c66b;
+  --green:#55d6a0;--red:#ff858d;--blue:#8ebcff;
+  --safe-bottom:env(safe-area-inset-bottom,0px)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 90% 0,#20385a 0,transparent 32%),var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.wrap{width:min(100%,920px);margin:0 auto;padding:14px 14px calc(34px + var(--safe-bottom))}
+.hero{border:1px solid #354a68;border-radius:23px;padding:23px 19px;background:linear-gradient(130deg,#1b304b,#101a2b 76%);overflow:hidden}
+.kicker{font-size:10px;font-weight:900;letter-spacing:.17em;color:var(--gold)}
+h1{font-size:clamp(36px,10vw,58px);line-height:.94;letter-spacing:-.06em;margin:13px 0 11px}
+h1 span{color:var(--gold)}
+.hero-copy{font-size:13px;color:#c0cada;margin:0;max-width:560px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:19px}
+.stat{padding:10px 9px;border:1px solid #35465f;border-radius:12px;background:#0a1728}
+.stat b{display:block;font-size:21px;line-height:1.1}
+.stat small{display:block;margin-top:4px;color:var(--muted);font-size:10px}
+.adminbar{display:flex;align-items:center;gap:11px;margin-top:12px;padding:13px;background:var(--panel);border:1px solid var(--line);border-radius:15px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none;box-shadow:0 0 0 4px #55d6a022}
+.admin-copy{flex:1;min-width:0}
+.admin-copy b{display:block;font-size:13px}
+.admin-copy small{display:block;color:var(--muted);font-size:11px}
+#syncStatus{font-size:10px;color:var(--muted);text-align:right;max-width:95px;overflow-wrap:anywhere}
+.login-area{display:none;padding:13px;margin-top:10px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.field{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:11px;min-width:0}
+.field input,.field select{width:100%}
+input,select{min-width:0;width:100%;padding:11px 12px;border:1px solid #405674;border-radius:10px;background:#091525;color:var(--text);font-size:14px}
+input:focus,select:focus{outline:2px solid var(--gold);outline-offset:1px}
+input:disabled{opacity:.65}
+.btn{border:1px solid var(--line);border-radius:11px;padding:10px 13px;background:#263751;color:var(--text);font-weight:800;font-size:12px;cursor:pointer;min-height:42px}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#172236}
+.btn.ghost{background:transparent}
+.btn.danger{border-color:#79444b;color:#ffb2b8;background:#351e28}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.nav{position:sticky;top:0;z-index:20;display:flex;gap:7px;overflow-x:auto;margin:14px -14px 18px;padding:8px 14px;background:#091321ed;backdrop-filter:blur(12px);scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;flex:none;padding:9px 13px;border-radius:22px;border:1px solid #30445f;background:var(--panel);color:var(--muted);font-size:11px;font-weight:850;cursor:pointer}
+.tab.active{background:var(--gold);color:#172236;border-color:var(--gold)}
+section{display:none;scroll-margin-top:65px}
+section.active{display:block}
+.heading{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:18px 0 11px}
+.heading h2{margin:0;font-size:22px;letter-spacing:-.04em}
+.heading p{margin:3px 0 0;color:var(--muted);font-size:11px}
+.eyebrow{font-size:10px;color:var(--gold);font-weight:900;letter-spacing:.08em}
+.panel,.team-card,.match-card,.standing-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:13px}
+.team-grid{display:grid;grid-template-columns:1fr;gap:9px}
+.team-card{display:flex;align-items:center;gap:11px}
+.team-id{display:grid;place-items:center;width:37px;height:37px;flex:none;border-radius:11px;background:#332d20;color:var(--gold);font-size:11px;font-weight:950}
+.team-name{font-size:13px;font-weight:850;overflow-wrap:anywhere}
+.team-edit{flex:1;min-width:0}
+.team-edit input{font-weight:750}
+.team-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:30px;background:#173a35;color:var(--green);font-size:9px;font-weight:900;white-space:nowrap}
+.badge.gold{background:#3a321f;color:var(--gold)}
+.notice{padding:12px 13px;border:1px solid #6e5b32;background:#2a251b;color:#f4d99e;border-radius:12px;font-size:11px;margin-top:12px}
+.notice b{color:#ffe4a8}
+.sub{color:var(--muted);font-size:11px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.round-label{margin:17px 0 8px;color:var(--gold);font-size:11px;font-weight:950;letter-spacing:.08em}
+.match-card{margin-bottom:9px}
+.match-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.match-id{font-size:10px;font-weight:950;color:var(--gold)}
+.match-meta{font-size:10px;color:var(--muted)}
+.versus{display:grid;grid-template-columns:minmax(0,1fr) 43px 22px 43px minmax(0,1fr);gap:5px;align-items:center}
+.side{min-width:0;font-size:11px;font-weight:850;overflow-wrap:anywhere}
+.side:last-child{text-align:right}
+.side small{display:block;color:var(--green);font-size:9px;margin-top:2px}
+.score-input{width:43px;text-align:center;padding:8px 2px;font-size:17px;font-weight:950;border-radius:9px}
+.score-read{display:grid;place-items:center;min-height:39px;border:1px solid #405674;background:#091525;border-radius:9px;font-size:17px;font-weight:950}
+.vs{text-align:center;color:#8798ae;font-size:9px;font-weight:950}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:570px;font-size:11px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+td strong{font-size:12px}
+.rank{color:var(--gold);font-weight:950}
+.standing-list{display:grid;gap:8px}
+.standing-card{display:flex;align-items:center;gap:10px;padding:12px}
+.standing-rank{width:25px;flex:none;color:var(--gold);font-weight:950;font-size:13px}
+.standing-main{flex:1;min-width:0}
+.standing-main b{display:block;font-size:12px;overflow-wrap:anywhere}
+.standing-main small{display:block;color:var(--muted);font-size:10px}
+.points{text-align:right;flex:none}
+.points b{display:block;color:var(--gold);font-size:21px;line-height:1.1}
+.points small{color:var(--muted);font-size:9px}
+.progress{height:4px;background:#263850;border-radius:9px;margin-top:7px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--green);border-radius:9px}
+.playoff-card{margin-bottom:10px}
+.playoff-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:11px}
+.playoff-title b{color:var(--gold);font-size:10px;letter-spacing:.07em}
+.playoff-title span{font-size:9px;color:var(--muted)}
+.champion{padding:17px;border:1px solid #6e5b32;border-radius:15px;background:linear-gradient(120deg,#302919,#1c2430);text-align:center;margin-top:12px}
+.champion .trophy{font-size:26px}
+.champion small{display:block;color:var(--gold);font-weight:900;letter-spacing:.12em}
+.champion b{display:block;font-size:19px;margin-top:4px}
+.request-form{display:grid;gap:10px}
+.request-list{display:grid;gap:9px}
+.request-item{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.request-item .actions{margin:0}
+.rule-list{padding:0;margin:0;list-style:none}
+.rule-list li{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);font-size:12px}
+.rule-list li:last-child{border:0}
+.rule-num{color:var(--gold);font-weight:950;flex:none}
+.empty{padding:18px;text-align:center;color:var(--muted);font-size:12px}
+.admin-tools{display:none}
+footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
+.toast{position:fixed;left:50%;bottom:calc(18px + var(--safe-bottom));transform:translateX(-50%);z-index:50;max-width:calc(100% - 28px);padding:11px 15px;border:1px solid #405674;border-radius:12px;background:#17263b;color:#f5f7fb;font-size:12px;box-shadow:0 10px 30px #0008;display:none}
+@media(min-width:650px){
+ .wrap{padding:22px 20px 45px}
+ .hero{padding:30px}
+ .team-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .standing-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .request-form{grid-template-columns:1fr 1fr;align-items:end}
+ .request-form .wide{grid-column:1/-1}
+ .score-input{width:48px}
+ .versus{grid-template-columns:minmax(0,1fr) 48px 24px 48px minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <div class="kicker">THE FRIENDS EDITION · CHAMPIONSHIP</div>
+  <h1>BADMINTON<br><span>CHAMPIONSHIP</span></h1>
+  <p class="hero-copy">Six teams. Fifteen league matches. Four semifinalists. One champion. Follow the scores and leaderboard together.</p>
+  <div class="stats">
+    <div class="stat"><b>06</b><small>TEAMS</small></div>
+    <div class="stat"><b>15</b><small>LEAGUE MATCHES</small></div>
+    <div class="stat"><b>01</b><small>CHAMPION</small></div>
+  </div>
+</header>
+
+<div class="adminbar">
+  <span class="status-dot" id="statusDot"></span>
+  <div class="admin-copy">
+    <b id="accessTitle">Public scoreboard</b>
+    <small id="accessMessage">Everyone can view. Only Anushka can manage results and official team names.</small>
+  </div>
+  <span id="syncStatus">Connecting…</span>
+</div>
+<div class="actions" style="margin-top:9px">
+  <button class="btn ghost" id="showLoginBtn" type="button">Admin login</button>
+  <button class="btn ghost" id="verifyBtn" type="button" hidden>Send verification email</button>
+  <button class="btn ghost" id="logoutBtn" type="button" hidden>Sign out</button>
+</div>
+<div class="login-area" id="loginArea">
+  <div class="form-grid">
+    <label class="field">Admin email<input id="adminEmail" type="email" autocomplete="username" placeholder="Admin email"></label>
+    <label class="field">Password<input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password"></label>
+  </div>
+  <div class="actions"><button class="btn primary" id="loginBtn" type="button">Sign in as admin</button></div>
+</div>
+
+<nav class="nav" aria-label="Tournament sections">
+  <button class="tab active" data-tab="teams" type="button">Teams</button>
+  <button class="tab" data-tab="matches" type="button">Fixtures & Scores</button>
+  <button class="tab" data-tab="standings" type="button">League Points</button>
+  <button class="tab" data-tab="knockouts" type="button">Knockouts</button>
+  <button class="tab" data-tab="requests" type="button">Name Requests</button>
+  <button class="tab" data-tab="rules" type="button">Rules</button>
+</nav>
+
+<section id="teams" class="active">
+  <div class="heading"><div><h2>Meet the teams</h2><p>Official team names are managed by the admin.</p></div></div>
+  <div class="team-grid" id="teamGrid"></div>
+  <div class="actions admin-tools" id="saveTeamTools"><button class="btn primary" id="saveTeamsBtn" type="button">Save official team names</button></div>
+  <div class="notice"><b>Championship format:</b> Every team plays every other team once. The top four teams qualify for the semifinals. The semifinal winners compete in the Grand Final.</div>
+
+  <div class="heading"><div><h2>Suggest a team name</h2><p>Requests go to Anushka for approval.</p></div></div>
+  <div class="panel">
+    <form id="requestForm" class="request-form">
+      <label class="field">Your team<select id="requestTeam" required><option value="">Select your team</option></select></label>
+      <label class="field">Suggested team name<input id="suggestedName" maxlength="40" required placeholder="Enter your team name"></label>
+      <label class="field">Your name (optional)<input id="requesterName" maxlength="40" placeholder="Your name"></label>
+      <div class="wide"><button class="btn primary" type="submit">Submit name request</button></div>
+    </form>
+    <p class="sub">Want to change your team name? Please contact admin Anushka. Official names change only after approval.</p>
+  </div>
+</section>
+
+<section id="matches">
+  <div class="heading"><div><h2>League fixtures & scores</h2><p>All 15 league matches · Scores entered by admin.</p></div></div>
+  <div id="fixtureList"></div>
+  <div class="actions"><button class="btn" id="shareLinkBtn" type="button">Copy website link</button><button class="btn danger admin-tools" id="resetScoresBtn" type="button">Reset all scores</button></div>
+  <div class="notice"><b>Match format:</b> One game to 15 points. Rally scoring. At 14–14, the next point wins — no deuce or advantage.</div>
+</section>
+
+<section id="standings">
+  <div class="heading">
+    <div><h2>League Points Dashboard</h2><p>Standings update automatically when scores are saved.</p></div>
+    <span class="badge">TOP 4 → SF</span>
+  </div>
+  <div id="standingsCards" class="standing-list"></div>
+  <div class="panel" style="margin-top:10px">
+    <div class="eyebrow">HOW LEAGUE POINTS WORK</div>
+    <p style="margin:6px 0 0;font-size:12px">Win = <b>2 points</b>. Loss = <b>0 points</b>. These points rank teams in the league table; they are separate from the score played in each match.</p>
+  </div>
+  <p class="sub" style="margin-top:10px">Tie-breakers: head-to-head record, points difference, then points scored. If a tie still affects qualification, the organiser will arrange a golden-point decider.</p>
+</section>
+
+<section id="knockouts">
+  <div class="heading"><div><h2>Road to the championship</h2><p>Semifinal teams and finalists are determined automatically.</p></div></div>
+  <div id="playoffList"></div>
+  <div class="notice">Semi-final 1: Rank 1 vs Rank 4. Semi-final 2: Rank 2 vs Rank 3. The two semifinal winners meet in the Grand Final.</div>
+</section>
+
+<section id="requests">
+  <div class="heading"><div><h2>Team-name requests</h2><p>Players can submit suggestions; only the admin can approve them.</p></div></div>
+  <div class="panel admin-tools" id="adminRequestPanel">
+    <div class="eyebrow">PENDING REQUESTS</div>
+    <div id="requestList" class="request-list" style="margin-top:8px"><div class="empty">No pending requests.</div></div>
+  </div>
+  <div class="panel" id="requestHelp"><div class="sub">To suggest a name, use the form in the Teams section. Requests are visible to the admin only.</div></div>
+</section>
+
+<section id="rules">
+  <div class="heading"><div><h2>Championship rules</h2><p>Simple, fair and competitive.</p></div></div>
+  <div class="panel">
+    <ol class="rule-list">
+      <li><span class="rule-num">01</span><span><b>League stage:</b> All six teams play each of the other five teams once. There are 15 league matches.</span></li>
+      <li><span class="rule-num">02</span><span><b>Match format:</b> Every match is one game to 15 points.</span></li>
+      <li><span class="rule-num">03</span><span><b>Scoring:</b> Rally scoring will be followed.</span></li>
+      <li><span class="rule-num">04</span><span><b>Golden point:</b> At 14–14, the next point wins the match. There will be no deuce or advantage.</span></li>
+      <li><span class="rule-num">05</span><span><b>League points:</b> 2 points for a win and 0 points for a loss. No draws.</span></li>
+      <li><span class="rule-num">06</span><span><b>Semifinals:</b> The top four teams qualify. Rank 1 plays Rank 4, and Rank 2 plays Rank 3.</span></li>
+      <li><span class="rule-num">07</span><span><b>Grand Final:</b> The semifinal winners compete for the championship. The final winner is the tournament champion.</span></li>
+      <li><span class="rule-num">08</span><span><b>Leaderboard:</b> Teams are ranked by league points, head-to-head record, points difference and points scored. A golden-point decider resolves any remaining tie affecting qualification.</span></li>
+      <li><span class="rule-num">09</span><span><b>Team names:</b> To change your team name, please contact admin Anushka. Changes require admin approval.</span></li>
+      <li><span class="rule-num">10</span><span><b>Fair play:</b> Standard badminton doubles rules apply. The organiser makes the final call on disputes.</span></li>
+      <li><span class="rule-num">11</span><span><b>Prizes:</b> Winner and runner-up prizes will be announced separately.</span></li>
+    </ol>
+  </div>
+</section>
+
+<footer>FRIENDS BADMINTON CHAMPIONSHIP · PLAY FAIR · HAVE FUN</footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  sendEmailVerification, signOut
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {
+  getFirestore, doc, onSnapshot, setDoc, collection, addDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD-IGJvC70fj0X-ueqBjLln-KkRGQoWfJ4",
+  authDomain: "badminton-league-b0e54.firebaseapp.com",
+  projectId: "badminton-league-b0e54",
+  storageBucket: "badminton-league-b0e54.firebasestorage.app",
+  messagingSenderId: "1077513893782",
+  appId: "1:1077513893782:web:4b83eda116b2d3b5cb0fb7",
+  measurementId: "G-W5ERW6D8KG"
+};
+const ADMIN_EMAIL = "zadejanushka@gmail.com";
+const DEFAULT_TEAMS = [
+  {id:"T1",name:"Rahul & Pranali"},
+  {id:"T2",name:"Aayan & Tanvi"},
+  {id:"T3",name:"Satyam & Somesh"},
+  {id:"T4",name:"Himan & Abhi"},
+  {id:"T5",name:"Pradnya & Anushka"},
+  {id:"T6",name:"Harsh & Dhake"}
+];
+// Round-robin schedule: 15 unique fixtures, no team appears twice in one round.
+const ROUNDS = [
+  [["T1","T2"],["T3","T4"]],
+  [["T5","T6"],["T1","T3"]],
+  [["T2","T4"],["T5","T1"]],
+  [["T3","T6"],["T2","T5"]],
+  [["T4","T1"],["T3","T5"]],
+  [["T6","T2"],["T4","T5"]],
+  [["T1","T6"],["T2","T3"]],
+  [["T4","T6"]]
+];
+const matches = ROUNDS.flatMap((round, ri) => round.map((pair, ci) => ({
+  id:`M${ROUNDS.slice(0,ri).reduce((n,r)=>n+r.length,0)+ci+1}`,
+  a:pair[0], b:pair[1], round:ri+1, court:ci+1
+})));
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const tournamentRef = doc(db,"tournaments","friends-badminton");
+const requestsRef = collection(db,"tournaments","friends-badminton","nameRequests");
+
+let teams = DEFAULT_TEAMS.map(t=>({...t}));
+let scores = {};
+let isAdmin = false;
+let requestUnsubscribe = null;
+let tournamentUnsubscribe = null;
+let saveQueue = Promise.resolve();
+
+const $ = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+const getTeam = id => teams.find(t=>t.id===id);
+const getScore = id => scores[id] || {a:"",b:""};
+const matchWinner = match => {
+  const s=getScore(match.id);
+  if(s.a===""||s.b==="") return null;
+  return Number(s.a)>Number(s.b)?match.a:match.b;
+};
+function toast(message){
+  const el=$("toast");el.textContent=message;el.style.display="block";
+  clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display="none",2800);
+}
+function isValidCompletedScore(s){
+  if(s.a===""||s.b==="") return true;
+  const a=Number(s.a),b=Number(s.b);
+  return a!==b && Math.max(a,b)===15 && Math.min(a,b)>=0 && Math.min(a,b)<=14;
+}
+function completedLeagueMatches(){
+  return matches.filter(m=>getScore(m.id).a!==""&&getScore(m.id).b!=="");
+}
+function standings(){
+  const rows=teams.map(t=>({id:t.id,played:0,w:0,l:0,pf:0,pa:0,points:0,headWins:0}));
+  const byId=id=>rows.find(r=>r.id===id);
+  const completed=completedLeagueMatches();
+  completed.forEach(m=>{
+    const s=getScore(m.id),a=Number(s.a),b=Number(s.b);
+    if(a===b)return;
+    const ra=byId(m.a),rb=byId(m.b);
+    ra.played++;rb.played++;ra.pf+=a;ra.pa+=b;rb.pf+=b;rb.pa+=a;
+    if(a>b){ra.w++;rb.l++;ra.points+=2;ra.headWins++;}
+    else{rb.w++;ra.l++;rb.points+=2;rb.headWins++;}
+  });
+  // Head-to-head mini-table is used for teams tied on league points.
+  const tiedGroups = new Map();
+  rows.forEach(r=>{
+    if(!tiedGroups.has(r.points))tiedGroups.set(r.points,[]);
+    tiedGroups.get(r.points).push(r);
+  });
+  for(const group of tiedGroups.values()){
+    if(group.length<2)continue;
+    const ids=new Set(group.map(r=>r.id));
+    const mini=new Map(group.map(r=>[r.id,0]));
+    completed.forEach(m=>{
+      if(!ids.has(m.a)||!ids.has(m.b))return;
+      const s=getScore(m.id),a=Number(s.a),b=Number(s.b);
+      if(a>b)mini.set(m.a,mini.get(m.a)+1);
+      else if(b>a)mini.set(m.b,mini.get(m.b)+1);
+    });
+    group.forEach(r=>r.headWins=mini.get(r.id));
+  }
+  return rows.sort((a,b)=>
+    b.points-a.points ||
+    b.headWins-a.headWins ||
+    ((b.pf-b.pa)-(a.pf-a.pa)) ||
+    b.pf-a.pf ||
+    a.id.localeCompare(b.id)
+  );
+}
+function renderTeams(){
+  $("teamGrid").innerHTML=teams.map(t=>`
+    <article class="team-card">
+      <span class="team-id">${escapeHtml(t.id)}</span>
+      <div class="team-edit">
+        ${isAdmin
+          ? `<input class="team-name-input" data-team="${escapeHtml(t.id)}" maxlength="60" aria-label="Official name for ${escapeHtml(t.id)}" value="${escapeHtml(t.name)}">`
+          : `<div class="team-name">${escapeHtml(t.name)}</div>`}
+        <div class="team-meta">Doubles team</div>
+      </div>
+      <span class="badge gold">5 matches</span>
+    </article>`).join("");
+  $("requestTeam").innerHTML='<option value="">Select your team</option>'+
+    teams.map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(t.id)} · ${escapeHtml(t.name)}</option>`).join("");
+}
+function renderMatchCard(match, label="LEAGUE"){
+  const s=getScore(match.id),win=matchWinner(match);
+  const a=getTeam(match.a),b=getTeam(match.b);
+  const scoreField=(side,value)=>isAdmin
+    ? `<input class="score-input" type="number" min="0" max="15" step="1" inputmode="numeric" pattern="[0-9]*" aria-label="${match.id} ${side} score" data-match="${match.id}" data-side="${side}" value="${escapeHtml(value)}">`
+    : `<strong class="score-read">${value===""?"–":escapeHtml(value)}</strong>`;
+  return `<article class="match-card">
+    <div class="match-top"><span class="match-id">${match.id} · ${label}</span><span class="match-meta">Round ${match.round??"—"} · Court ${match.court??"—"}</span></div>
+    <div class="versus">
+      <div class="side">${escapeHtml(a?.name||match.a)}<small>${win===match.a?"WINNER":""}</small></div>
+      ${scoreField("a",s.a)}
+      <span class="vs">VS</span>
+      ${scoreField("b",s.b)}
+      <div class="side">${escapeHtml(b?.name||match.b)}<small>${win===match.b?"WINNER":""}</small></div>
+    </div>
+  </article>`;
+}
+function bindScoreInputs(container){
+  container.querySelectorAll(".score-input").forEach(input=>{
+    input.addEventListener("change",onScoreChange);
+  });
+}
+function renderFixtures(){
+  let out="";
+  ROUNDS.forEach((round,i)=>{
+    out+=`<div class="round-label">LEAGUE ROUND ${i+1}</div>`;
+    round.forEach(pair=>{
+      const match=matches.find(m=>m.round===i+1&&m.a===pair[0]&&m.b===pair[1]);
+      out+=renderMatchCard(match);
+    });
+  });
+  $("fixtureList").innerHTML=out;
+  bindScoreInputs($("fixtureList"));
+}
+function renderStandings(){
+  const rows=standings();
+  const maxPoints=Math.max(2,...rows.map(r=>r.points));
+  $("standingsCards").innerHTML=rows.map((r,i)=>`
+    <article class="standing-card">
+      <div class="standing-rank">#${i+1}</div>
+      <div class="standing-main">
+        <b>${escapeHtml(getTeam(r.id).name)}</b>
+        <small>Played ${r.played}/5 · Won ${r.w} · Lost ${r.l}</small>
+        <div class="progress"><i style="width:${Math.round(r.points/maxPoints*100)}%"></i></div>
+        ${i<4?'<span class="badge" style="margin-top:6px">QUALIFICATION SPOT</span>':""}
+      </div>
+      <div class="points"><b>${r.points}</b><small>LEAGUE PTS</small></div>
+    </article>`).join("");
+}
+function renderPlayoffs(){
+  const rows=standings();
+  const leagueComplete=completedLeagueMatches().length===15;
+  const sf1=leagueComplete?{a:rows[0].id,b:rows[3].id}:null;
+  const sf2=leagueComplete?{a:rows[1].id,b:rows[2].id}:null;
+  const sf1Winner=sf1?matchWinner({id:"SF1",...sf1}):null;
+  const sf2Winner=sf2?matchWinner({id:"SF2",...sf2}):null;
+  const finalPair=sf1Winner&&sf2Winner?{a:sf1Winner,b:sf2Winner}:null;
+  const finalWinner=finalPair?matchWinner({id:"FINAL",...finalPair}):null;
+  const card=(id,title,pair,description)=>{
+    if(!pair)return `<article class="match-card playoff-card"><div class="playoff-title"><b>${title}</b><span>Awaiting qualification</span></div><div class="empty">${description}</div></article>`;
+    const match={id,...pair};
+    const s=getScore(id),win=matchWinner(match);
+    const scoreField=(side,value)=>isAdmin
+      ? `<input class="score-input" type="number" min="0" max="15" step="1" inputmode="numeric" aria-label="${id} ${side} score" data-match="${id}" data-side="${side}" value="${escapeHtml(value)}">`
+      : `<strong class="score-read">${value===""?"–":escapeHtml(value)}</strong>`;
+    return `<article class="match-card playoff-card">
+      <div class="playoff-title"><b>${title}</b><span>Knockout · Single game</span></div>
+      <div class="versus">
+        <div class="side">${escapeHtml(getTeam(pair.a).name)}<small>${win===pair.a?"WINNER":""}</small></div>
+        ${scoreField("a",s.a)}<span class="vs">VS</span>${scoreField("b",s.b)}
+        <div class="side">${escapeHtml(getTeam(pair.b).name)}<small>${win===pair.b?"WINNER":""}</small></div>
+      </div>
+    </article>`;
+  };
+  let out=`<div class="round-label">SEMI-FINALS</div>`;
+  out+=card("SF1","SEMI-FINAL 1 · RANK 1 VS RANK 4",sf1,"Complete all 15 league matches to confirm semifinalists.");
+  out+=card("SF2","SEMI-FINAL 2 · RANK 2 VS RANK 3",sf2,"The top four teams will be seeded automatically.");
+  out+='<div class="round-label">GRAND FINAL</div>';
+  out+=card("FINAL","CHAMPIONSHIP FINAL",finalPair,"The two semifinal winners will advance here.");
+  if(finalWinner){
+    out+=`<div class="champion"><div class="trophy">🏆</div><small>TOURNAMENT CHAMPION</small><b>${escapeHtml(getTeam(finalWinner).name)}</b></div>`;
+  }
+  $("playoffList").innerHTML=out;
+  bindScoreInputs($("playoffList"));
+}
+function render(){
+  renderTeams();renderFixtures();renderStandings();renderPlayoffs();
+  $("saveTeamTools").style.display=isAdmin?"flex":"none";
+  $("resetScoresBtn").style.display=isAdmin?"inline-flex":"none";
+  $("adminRequestPanel").style.display=isAdmin?"block":"none";
+  $("requestHelp").style.display=isAdmin?"none":"block";
+  $("showLoginBtn").hidden=!!auth.currentUser;
+  $("logoutBtn").hidden=!auth.currentUser;
+  $("verifyBtn").hidden=!(auth.currentUser&&!auth.currentUser.emailVerified&&auth.currentUser.email?.toLowerCase()===ADMIN_EMAIL);
+}
+async function persist(){
+  if(!isAdmin)return;
+  const snapshot={teams,scores,updatedAt:Date.now()};
+  saveQueue=saveQueue.then(()=>setDoc(tournamentRef,snapshot,{merge:true}));
+  try{
+    await saveQueue;
+    $("syncStatus").textContent="Saved · live";
+    $("statusDot").style.background="var(--green)";
+  }catch(error){
+    console.error(error);
+    $("syncStatus").textContent="Save failed";
+    $("statusDot").style.background="var(--red)";
+    toast("Could not save. Check Firestore rules and connection.");
+    throw error;
+  }
+}
+async function onScoreChange(event){
+  if(!isAdmin)return;
+  const input=event.currentTarget,id=input.dataset.match,side=input.dataset.side;
+  const raw=input.value.trim();
+  if(raw!==""&&(!/^\d+$/.test(raw)||Number(raw)<0||Number(raw)>15)){
+    toast("Enter a whole-number score from 0 to 15.");input.value=getScore(id)[side];return;
+  }
+  const previous=getScore(id);
+  const next={...previous,[side]:raw};
+  if(!isValidCompletedScore(next)){
+    toast("A completed match must be won at 15. At 14–14, play the golden point.");input.value=previous[side];return;
+  }
+  scores={...scores,[id]:next};
+  try{await persist();render();}
+  catch{scores={...scores,[id]:previous};render();}
+}
+function setAccess(title,message,status,ok=true){
+  $("accessTitle").textContent=title;$("accessMessage").textContent=message;
+  $("syncStatus").textContent=status;$("statusDot").style.background=ok?"var(--green)":"var(--red)";
+}
+function listenForRequests(){
+  if(requestUnsubscribe){requestUnsubscribe();requestUnsubscribe=null;}
+  if(!isAdmin)return;
+  requestUnsubscribe=onSnapshot(requestsRef,snapshot=>{
+    const requests=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+    $("requestList").innerHTML=requests.length?requests.map(r=>`
+      <article class="panel request-item">
+        <div style="min-width:0"><b style="font-size:12px">${escapeHtml(r.suggestedName)}</b>
+          <div class="sub">${escapeHtml(r.teamId)} · ${escapeHtml(getTeam(r.teamId)?.name||"Team")} · ${escapeHtml(r.requesterName||"Player")}</div>
+        </div>
+        <div class="actions">
+          <button class="btn primary approve-btn" data-id="${escapeHtml(r.id)}" data-team="${escapeHtml(r.teamId)}" data-name="${escapeHtml(r.suggestedName)}">Approve</button>
+          <button class="btn danger reject-btn" data-id="${escapeHtml(r.id)}">Reject</button>
+        </div>
+      </article>`).join(""):'<div class="empty">No pending requests.</div>';
+    $("requestList").querySelectorAll(".approve-btn").forEach(button=>{
+      button.addEventListener("click",async()=>{
+        const selected=getTeam(button.dataset.team);
+        if(!selected)return;
+        selected.name=button.dataset.name;
+        try{await persist();await deleteDoc(doc(requestsRef,button.dataset.id));toast("Team name approved and updated.");render();}
+        catch{toast("Could not approve this request.");}
+      });
+    });
+    $("requestList").querySelectorAll(".reject-btn").forEach(button=>{
+      button.addEventListener("click",async()=>{
+        if(!confirm("Reject this team-name request?"))return;
+        try{await deleteDoc(doc(requestsRef,button.dataset.id));toast("Request rejected.");}
+        catch{toast("Could not reject this request.");}
+      });
+    });
+  },error=>{console.error(error);$("requestList").innerHTML='<div class="empty">Could not load requests. Check Firestore rules.</div>';});
+}
+function initRealtime(){
+  tournamentUnsubscribe=onSnapshot(tournamentRef,snapshot=>{
+    if(snapshot.exists()){
+      const data=snapshot.data();
+      if(Array.isArray(data.teams)&&data.teams.length===6&&data.teams.every(t=>t.id&&typeof t.name==="string")){
+        teams=data.teams.map(t=>({id:t.id,name:t.name}));
+      }
+      scores=data.scores&&typeof data.scores==="object"?data.scores:{};
+    }else if(isAdmin){
+      persist().catch(()=>{});
+    }
+    render();
+    setAccess(isAdmin?"Admin mode · Anushka":"Public live scoreboard",
+      isAdmin?"You can edit official team names and match scores.":"View-only access. Scores and approved team names update automatically.",
+      "Connected · live updates on",true);
+  },error=>{
+    console.error(error);
+    setAccess("Connection issue","Could not load shared tournament data.","Check Firebase setup",false);
+  });
+  onAuthStateChanged(auth,user=>{
+    isAdmin=!!(user&&user.emailVerified&&user.email?.toLowerCase()===ADMIN_EMAIL);
+    render();listenForRequests();
+    if(user&&!isAdmin){
+      setAccess("Email verification required","Verify the admin email, then sign out and sign in again.","View-only",false);
+    }else if(isAdmin){
+      setAccess("Admin mode · Anushka","You can edit official team names and match scores.","Admin signed in",true);
+    }else{
+      setAccess("Public scoreboard","Everyone can view. Only Anushka can manage results and official team names.","Connecting…",true);
+    }
+  });
+}
+
+/* Section navigation */
+document.querySelectorAll(".tab").forEach(button=>button.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(tab=>tab.classList.toggle("active",tab===button));
+  document.querySelectorAll("main section").forEach(section=>section.classList.toggle("active",section.id===button.dataset.tab));
+  window.scrollTo({top:0,behavior:"smooth"});
+}));
+$("showLoginBtn").addEventListener("click",()=>{
+  $("loginArea").style.display=$("loginArea").style.display==="block"?"none":"block";
+  if($("loginArea").style.display==="block")$("adminEmail").focus();
+});
+$("loginBtn").addEventListener("click",async()=>{
+  const email=$("adminEmail").value.trim(),password=$("adminPassword").value;
+  if(!email||!password){toast("Enter admin email and password.");return;}
+  try{await signInWithEmailAndPassword(auth,email,password);$("adminPassword").value="";$("loginArea").style.display="none";}
+  catch(error){console.error(error);toast("Sign-in failed. Check credentials and Authentication setup.");}
+});
+$("verifyBtn").addEventListener("click",async()=>{
+  try{if(auth.currentUser){await sendEmailVerification(auth.currentUser);toast("Verification email sent. Verify, sign out, then sign in again.");}}
+  catch(error){console.error(error);toast("Could not send verification email.");}
+});
+$("logoutBtn").addEventListener("click",()=>signOut(auth));
+$("saveTeamsBtn").addEventListener("click",async()=>{
+  if(!isAdmin)return;
+  document.querySelectorAll(".team-name-input").forEach(input=>{
+    const t=getTeam(input.dataset.team),name=input.value.trim();
+    if(t&&name)t.name=name;
+  });
+  try{await persist();render();toast("Official team names saved.");}
+  catch{toast("Could not save team names.");}
+});
+$("requestForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const teamId=$("requestTeam").value;
+  const suggestedName=$("suggestedName").value.trim();
+  const requesterName=$("requesterName").value.trim();
+  if(!teamId||!suggestedName){toast("Choose your team and enter a suggested name.");return;}
+  try{
+    await addDoc(requestsRef,{teamId,suggestedName,requesterName,createdAt:new Date()});
+    event.currentTarget.reset();toast("Name request sent to the admin.");
+  }catch(error){console.error(error);toast("Could not submit. Check Firestore rules and connection.");}
+});
+$("shareLinkBtn").addEventListener("click",async()=>{
+  const url=location.href.split("#")[0];
+  try{await navigator.clipboard.writeText(url);toast("Website link copied. Share it with the players!");}
+  catch{prompt("Copy this website link:",url);}
+});
+$("resetScoresBtn").addEventListener("click",async()=>{
+  if(!isAdmin||!confirm("Clear every league and knockout score for everyone?"))return;
+  const old=scores;scores={};
+  try{await persist();render();toast("All scores have been reset.");}
+  catch{scores=old;render();}
+});
+render();
+initRealtime();
+</script>
+</body>
+</html>
