@@ -330,7 +330,8 @@ function toast(message){
 function isValidCompletedScore(s){
   if(s.a===""||s.b==="") return true;
   const a=Number(s.a),b=Number(s.b);
-  const high=Math.max(a,b),low=Math.min(a,b);\n  return a!==b && low>=0 && high<=30 && (high===30 ? low>=28 : high>=21 && high-low>=2);
+  const high=Math.max(a,b),low=Math.min(a,b);
+  return a!==b && low>=0 && high<=30 && (high===30 ? low>=28 : high>=21 && high-low>=2);
 }
 function completedLeagueMatches(){
   return matches.filter(m=>getScore(m.id).a!==""&&getScore(m.id).b!=="");
