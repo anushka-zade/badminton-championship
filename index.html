@@ -481,18 +481,25 @@ function render(){
   $("verifyBtn").hidden=!(auth.currentUser&&!auth.currentUser.emailVerified&&auth.currentUser.email?.toLowerCase()===ADMIN_EMAIL);
 }
 async function persist(){
-  if(!isAdmin)return;
+  if(!isAdmin){
+    const error=new Error("Admin access is not verified.");
+    error.code="admin/not-authorized";
+    throw error;
+  }
   const snapshot={teams,scores,updatedAt:Date.now()};
-  saveQueue=saveQueue.then(()=>setDoc(tournamentRef,snapshot,{merge:true}));
+  // Recover the queue after a failed write so later attempts can still succeed.
+  const write=saveQueue.catch(()=>{}).then(()=>setDoc(tournamentRef,snapshot,{merge:true}));
+  saveQueue=write;
   try{
-    await saveQueue;
+    await write;
     $("syncStatus").textContent="Saved · live";
     $("statusDot").style.background="var(--green)";
   }catch(error){
-    console.error(error);
+    console.error("Firestore save failed:",error?.code,error?.message,error);
     $("syncStatus").textContent="Save failed";
     $("statusDot").style.background="var(--red)";
-    toast("Could not save. Check Firestore rules and connection.");
+    const code=error?.code||"unknown";
+    toast("Could not save ("+code+"). Check admin verification and Firestore rules.");
     throw error;
   }
 }
