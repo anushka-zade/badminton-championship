@@ -19,26 +19,18 @@ service cloud.firestore {
         // Only the admin can view submitted name requests.
         allow read: if isAdmin();
 
-        // Public can submit a suggested team name and both proposed team members.
+        // Public can submit a suggested team name; team members are fixed in the website.
         allow create: if request.resource.data.keys().hasAll([
-            "teamId", "suggestedName", "teamMembers", "requesterName", "createdAt"
+            "teamId", "suggestedName", "requesterName", "createdAt"
           ])
           && request.resource.data.keys().hasOnly([
-            "teamId", "suggestedName", "teamMembers", "requesterName", "createdAt"
+            "teamId", "suggestedName", "requesterName", "createdAt"
           ])
           && request.resource.data.teamId is string
           && request.resource.data.teamId in ["T1", "T2", "T3", "T4", "T5", "T6"]
           && request.resource.data.suggestedName is string
           && request.resource.data.suggestedName.size() > 0
           && request.resource.data.suggestedName.size() <= 40
-          && request.resource.data.teamMembers is list
-          && request.resource.data.teamMembers.size() == 2
-          && request.resource.data.teamMembers[0] is string
-          && request.resource.data.teamMembers[0].size() > 0
-          && request.resource.data.teamMembers[0].size() <= 40
-          && request.resource.data.teamMembers[1] is string
-          && request.resource.data.teamMembers[1].size() > 0
-          && request.resource.data.teamMembers[1].size() <= 40
           && request.resource.data.requesterName is string
           && request.resource.data.requesterName.size() <= 40
           && request.resource.data.createdAt is timestamp;
