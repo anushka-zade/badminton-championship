@@ -620,13 +620,15 @@ $("saveTeamsBtn").addEventListener("click",async()=>{
 });
 $("requestForm").addEventListener("submit",async event=>{
   event.preventDefault();
+  const form=event.currentTarget;
   const teamId=$("requestTeam").value;
   const suggestedName=$("suggestedName").value.trim();
   const requesterName=$("requesterName").value.trim();
   if(!teamId||!suggestedName){toast("Choose your team and enter a suggested name.");return;}
   try{
     await addDoc(requestsRef,{teamId,suggestedName,requesterName,createdAt:new Date()});
-    event.currentTarget.reset();toast("Name request sent to the admin.");
+    form.reset();
+    toast("Name request sent to the admin.");
   }catch(error){
     console.error("Firestore name request failed:",error?.code,error?.message,error);
     toast("Could not submit ("+(error?.code||"unknown")+"). Check Firestore rules.");
