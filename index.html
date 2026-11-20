@@ -332,9 +332,9 @@ function isValidCompletedScore(s){
   const a=Number(s.a),b=Number(s.b);
   const high=Math.max(a,b),low=Math.min(a,b);
   const normalWin=high===21 && low<=19;
-  const deuceWin=high>=22 && high<=29 && low>=20 && high-low===2;
+  const advantageWin=high>=22 && high<=29 && low>=20 && high-low===2;
   const capWin=high===30 && (low===28 || low===29);
-  return a!==b && low>=0 && (normalWin || deuceWin || capWin);
+  return a!==b && low>=0 && (normalWin || advantageWin || capWin);
 }
 function completedLeagueMatches(){
   return matches.filter(m=>getScore(m.id).a!==""&&getScore(m.id).b!=="");
