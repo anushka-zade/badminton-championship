@@ -189,8 +189,6 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
     <form id="requestForm" class="request-form">
       <label class="field">Your team<select id="requestTeam" required><option value="">Select your team</option></select></label>
       <label class="field">Suggested team name<input id="suggestedName" maxlength="40" required placeholder="Enter your team name"></label>
-      <label class="field">Team member 1<input id="memberOne" maxlength="40" required placeholder="First player's name"></label>
-      <label class="field">Team member 2<input id="memberTwo" maxlength="40" required placeholder="Second player's name"></label>
       <label class="field">Your name (optional)<input id="requesterName" maxlength="40" placeholder="Your name"></label>
       <div class="wide"><button class="btn primary" type="submit">Submit name request</button></div>
     </form>
@@ -278,12 +276,12 @@ const firebaseConfig = {
 };
 const ADMIN_EMAIL = "zadejanushka@gmail.com";
 const DEFAULT_TEAMS = [
-  {id:"T1",name:"Rahul & Pranali"},
-  {id:"T2",name:"Aayan & Tanvi"},
-  {id:"T3",name:"Satyam & Somesh"},
-  {id:"T4",name:"Himan & Abhi"},
-  {id:"T5",name:"Pradnya & Anushka"},
-  {id:"T6",name:"Harsh & Dhake"}
+  {id:"T1",name:"Rahul & Pranali",teamMembers:["Rahul","Pranali"]},
+  {id:"T2",name:"Aayan & Tanvi",teamMembers:["Aayan","Tanvi"]},
+  {id:"T3",name:"Satyam & Somesh",teamMembers:["Satyam","Somesh"]},
+  {id:"T4",name:"Himan & Abhi",teamMembers:["Himan","Abhi"]},
+  {id:"T5",name:"Pradnya & Anushka",teamMembers:["Pradnya","Anushka"]},
+  {id:"T6",name:"Harsh & Dhake",teamMembers:["Harsh","Dhake"]}
 ];
 // Round-robin schedule: 15 unique fixtures, no team appears twice in one round.
 const ROUNDS = [
@@ -377,23 +375,21 @@ function standings(){
 }
 function renderTeams(){
   $("teamGrid").innerHTML=teams.map(t=>{
-    const members=Array.isArray(t.teamMembers)?t.teamMembers.filter(Boolean):[];
-    const memberSubtitle=members.length
-      ? "Team members: "+escapeHtml(members.join(" & "))
-      : "Doubles team";
+    const fixedMembers=DEFAULT_TEAMS.find(original=>original.id===t.id)?.teamMembers||[];
     const nameMarkup=isAdmin
       ? '<input class="team-name-input" data-team="'+escapeHtml(t.id)+'" maxlength="60" aria-label="Official name for '+escapeHtml(t.id)+'" value="'+escapeHtml(t.name)+'">'
       : '<div class="team-name">'+escapeHtml(t.name)+'</div>';
+    const memberSubtitle=fixedMembers.map((member,index)=>
+      '<div class="team-meta">Member '+(index+1)+': '+escapeHtml(member)+'</div>'
+    ).join("");
     return '<article class="team-card">'+
       '<span class="team-id">'+escapeHtml(t.id)+'</span>'+
-      '<div class="team-edit">'+nameMarkup+
-        '<div class="team-meta">'+memberSubtitle+'</div>'+
-      '</div>'+
+      '<div class="team-edit">'+nameMarkup+memberSubtitle+'</div>'+
       '<span class="badge gold">5 matches</span>'+
     '</article>';
   }).join("");
   $("requestTeam").innerHTML='<option value="">Select your team</option>'+
-    teams.map(t=>'<option value="'+escapeHtml(t.id)+'">'+escapeHtml(t.id)+' · '+escapeHtml(t.name)+'</option>').join("");
+    teams.map(t=>'<option value="'+escapeHtml(t.id)+'">Team '+escapeHtml(t.id)+' · '+escapeHtml(t.name)+'</option>').join("");
 }
 function renderMatchCard(match, label="LEAGUE"){
   const s=getScore(match.id),win=matchWinner(match);
@@ -539,12 +535,12 @@ function listenForRequests(){
   requestUnsubscribe=onSnapshot(requestsRef,snapshot=>{
     const requests=snapshot.docs.map(d=>({id:d.id,...d.data()}));
     $("requestList").innerHTML=requests.length?requests.map(r=>{
-      const members=Array.isArray(r.teamMembers)?r.teamMembers:[];
+      const fixedMembers=DEFAULT_TEAMS.find(original=>original.id===r.teamId)?.teamMembers||[];
       return '<article class="panel request-item">'+
         '<div style="min-width:0">'+
           '<b style="font-size:12px">'+escapeHtml(r.suggestedName)+'</b>'+
           '<div class="sub">Team: '+escapeHtml(r.teamId)+' · Current name: '+escapeHtml(getTeam(r.teamId)?.name||"Team")+'</div>'+
-          '<div class="sub">Team members: '+escapeHtml(members.join(" & ")||"Not provided")+'</div>'+
+          '<div class="sub">Members: '+escapeHtml(fixedMembers[0]||"")+' & '+escapeHtml(fixedMembers[1]||"")+'</div>'+
           '<div class="sub">Requested by: '+escapeHtml(r.requesterName||"Player")+'</div>'+
         '</div>'+
         '<div class="actions">'+
@@ -558,35 +554,21 @@ function listenForRequests(){
       button.addEventListener("click",async()=>{
         const request=requests.find(item=>item.id===button.dataset.id);
         const selected=request&&getTeam(request.teamId);
-        const members=Array.isArray(request?.teamMembers)?request.teamMembers:[];
         if(!selected){toast("The selected team could not be found.");return;}
-        if(members.length!==2||members.some(name=>typeof name!=="string"||!name.trim())){
-          toast("This request needs two valid team member names.");
-          return;
-        }
-        if(members[0].trim().toLowerCase()===members[1].trim().toLowerCase()){
-          toast("The two team member names must be different.");
-          return;
-        }
-
         const oldName=selected.name;
-        const oldMembers=Array.isArray(selected.teamMembers)?[...selected.teamMembers]:[];
         selected.name=request.suggestedName;
-        selected.teamMembers=members.map(name=>name.trim());
         try{
           await persist();
           render();
         }catch(error){
           selected.name=oldName;
-          selected.teamMembers=oldMembers;
           render();
           toast("Could not approve ("+(error?.code||"unknown")+").");
           return;
         }
-
         try{
           await deleteDoc(doc(requestsRef,button.dataset.id));
-          toast("Team name and members approved and updated.");
+          toast("Team name approved and updated. Team members remain unchanged.");
         }catch(error){
           console.error("Team updated, but request removal failed:",error);
           toast("Team updated, but the pending request could not be removed.");
@@ -614,7 +596,7 @@ function initRealtime(){
         teams=data.teams.map(t=>({
           id:t.id,
           name:t.name,
-          teamMembers:Array.isArray(t.teamMembers)?t.teamMembers.filter(x=>typeof x==="string"):[]
+          teamMembers:[...(DEFAULT_TEAMS.find(original=>original.id===t.id)?.teamMembers||[])]
         }));
       }
       scores=data.scores&&typeof data.scores==="object"?data.scores:{};
@@ -674,16 +656,16 @@ $("saveTeamsBtn").addEventListener("click",async()=>{
 });
 $("resetTeamNamesBtn").addEventListener("click",async()=>{
   if(!isAdmin)return;
-  if(!confirm("Restore all six original team names and clear the custom team-member subtitles? Scores will not be changed."))return;
+  if(!confirm("Restore all six original team names? Fixed team members and match scores will not be changed."))return;
   const previous=teams.map(t=>({
     ...t,
     teamMembers:Array.isArray(t.teamMembers)?[...t.teamMembers]:[]
   }));
-  teams=DEFAULT_TEAMS.map(t=>({id:t.id,name:t.name,teamMembers:[]}));
+  teams=DEFAULT_TEAMS.map(t=>({...t,teamMembers:[...t.teamMembers]}));
   try{
     await persist();
     render();
-    toast("Original team names restored. Scores were kept.");
+    toast("Original team names restored. Team members and scores were kept.");
   }catch(error){
     teams=previous;
     render();
@@ -695,25 +677,10 @@ $("requestForm").addEventListener("submit",async event=>{
   const form=event.currentTarget;
   const teamId=$("requestTeam").value;
   const suggestedName=$("suggestedName").value.trim();
-  const memberOne=$("memberOne").value.trim();
-  const memberTwo=$("memberTwo").value.trim();
   const requesterName=$("requesterName").value.trim();
-  if(!teamId||!suggestedName||!memberOne||!memberTwo){
-    toast("Enter your team, suggested name and both team members.");
-    return;
-  }
-  if(memberOne.toLowerCase()===memberTwo.toLowerCase()){
-    toast("Enter two different team members.");
-    return;
-  }
+  if(!teamId||!suggestedName){toast("Choose your team and enter a suggested name.");return;}
   try{
-    await addDoc(requestsRef,{
-      teamId,
-      suggestedName,
-      teamMembers:[memberOne,memberTwo],
-      requesterName,
-      createdAt:new Date()
-    });
+    await addDoc(requestsRef,{teamId,suggestedName,requesterName,createdAt:new Date()});
     form.reset();
     toast("Name request sent to the admin.");
   }catch(error){
