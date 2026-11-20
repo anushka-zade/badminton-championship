@@ -178,7 +178,10 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
 <section id="teams" class="active">
   <div class="heading"><div><h2>Meet the teams</h2><p>Official team names are managed by the admin.</p></div></div>
   <div class="team-grid" id="teamGrid"></div>
-  <div class="actions admin-tools" id="saveTeamTools"><button class="btn primary" id="saveTeamsBtn" type="button">Save official team names</button></div>
+  <div class="actions admin-tools" id="saveTeamTools">
+    <button class="btn primary" id="saveTeamsBtn" type="button">Save official team names</button>
+    <button class="btn danger" id="resetTeamNamesBtn" type="button">Restore original team names</button>
+  </div>
   <div class="notice"><b>Championship format:</b> Every team plays every other team once. The top four teams qualify for the semifinals. The semifinal winners compete in the Grand Final.</div>
 
   <div class="heading"><div><h2>Suggest a team name</h2><p>Requests go to Admin for approval.</p></div></div>
@@ -186,6 +189,8 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
     <form id="requestForm" class="request-form">
       <label class="field">Your team<select id="requestTeam" required><option value="">Select your team</option></select></label>
       <label class="field">Suggested team name<input id="suggestedName" maxlength="40" required placeholder="Enter your team name"></label>
+      <label class="field">Team member 1<input id="memberOne" maxlength="40" required placeholder="First player's name"></label>
+      <label class="field">Team member 2<input id="memberTwo" maxlength="40" required placeholder="Second player's name"></label>
       <label class="field">Your name (optional)<input id="requesterName" maxlength="40" placeholder="Your name"></label>
       <div class="wide"><button class="btn primary" type="submit">Submit name request</button></div>
     </form>
@@ -371,19 +376,24 @@ function standings(){
   );
 }
 function renderTeams(){
-  $("teamGrid").innerHTML=teams.map(t=>`
-    <article class="team-card">
-      <span class="team-id">${escapeHtml(t.id)}</span>
-      <div class="team-edit">
-        ${isAdmin
-          ? `<input class="team-name-input" data-team="${escapeHtml(t.id)}" maxlength="60" aria-label="Official name for ${escapeHtml(t.id)}" value="${escapeHtml(t.name)}">`
-          : `<div class="team-name">${escapeHtml(t.name)}</div>`}
-        <div class="team-meta">Doubles team</div>
-      </div>
-      <span class="badge gold">5 matches</span>
-    </article>`).join("");
+  $("teamGrid").innerHTML=teams.map(t=>{
+    const members=Array.isArray(t.teamMembers)?t.teamMembers.filter(Boolean):[];
+    const memberSubtitle=members.length
+      ? "Team members: "+escapeHtml(members.join(" & "))
+      : "Doubles team";
+    const nameMarkup=isAdmin
+      ? '<input class="team-name-input" data-team="'+escapeHtml(t.id)+'" maxlength="60" aria-label="Official name for '+escapeHtml(t.id)+'" value="'+escapeHtml(t.name)+'">'
+      : '<div class="team-name">'+escapeHtml(t.name)+'</div>';
+    return '<article class="team-card">'+
+      '<span class="team-id">'+escapeHtml(t.id)+'</span>'+
+      '<div class="team-edit">'+nameMarkup+
+        '<div class="team-meta">'+memberSubtitle+'</div>'+
+      '</div>'+
+      '<span class="badge gold">5 matches</span>'+
+    '</article>';
+  }).join("");
   $("requestTeam").innerHTML='<option value="">Select your team</option>'+
-    teams.map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(t.id)} · ${escapeHtml(t.name)}</option>`).join("");
+    teams.map(t=>'<option value="'+escapeHtml(t.id)+'">'+escapeHtml(t.id)+' · '+escapeHtml(t.name)+'</option>').join("");
 }
 function renderMatchCard(match, label="LEAGUE"){
   const s=getScore(match.id),win=matchWinner(match);
@@ -528,40 +538,84 @@ function listenForRequests(){
   if(!isAdmin)return;
   requestUnsubscribe=onSnapshot(requestsRef,snapshot=>{
     const requests=snapshot.docs.map(d=>({id:d.id,...d.data()}));
-    $("requestList").innerHTML=requests.length?requests.map(r=>`
-      <article class="panel request-item">
-        <div style="min-width:0"><b style="font-size:12px">${escapeHtml(r.suggestedName)}</b>
-          <div class="sub">${escapeHtml(r.teamId)} · ${escapeHtml(getTeam(r.teamId)?.name||"Team")} · ${escapeHtml(r.requesterName||"Player")}</div>
-        </div>
-        <div class="actions">
-          <button class="btn primary approve-btn" data-id="${escapeHtml(r.id)}" data-team="${escapeHtml(r.teamId)}" data-name="${escapeHtml(r.suggestedName)}">Approve</button>
-          <button class="btn danger reject-btn" data-id="${escapeHtml(r.id)}">Reject</button>
-        </div>
-      </article>`).join(""):'<div class="empty">No pending requests.</div>';
+    $("requestList").innerHTML=requests.length?requests.map(r=>{
+      const members=Array.isArray(r.teamMembers)?r.teamMembers:[];
+      return '<article class="panel request-item">'+
+        '<div style="min-width:0">'+
+          '<b style="font-size:12px">'+escapeHtml(r.suggestedName)+'</b>'+
+          '<div class="sub">Team: '+escapeHtml(r.teamId)+' · Current name: '+escapeHtml(getTeam(r.teamId)?.name||"Team")+'</div>'+
+          '<div class="sub">Team members: '+escapeHtml(members.join(" & ")||"Not provided")+'</div>'+
+          '<div class="sub">Requested by: '+escapeHtml(r.requesterName||"Player")+'</div>'+
+        '</div>'+
+        '<div class="actions">'+
+          '<button class="btn primary approve-btn" data-id="'+escapeHtml(r.id)+'">Approve</button>'+
+          '<button class="btn danger reject-btn" data-id="'+escapeHtml(r.id)+'">Reject</button>'+
+        '</div>'+
+      '</article>';
+    }).join(""):'<div class="empty">No pending requests.</div>';
+
     $("requestList").querySelectorAll(".approve-btn").forEach(button=>{
       button.addEventListener("click",async()=>{
-        const selected=getTeam(button.dataset.team);
-        if(!selected)return;
-        selected.name=button.dataset.name;
-        try{await persist();await deleteDoc(doc(requestsRef,button.dataset.id));toast("Team name approved and updated.");render();}
-        catch{toast("Could not approve this request.");}
+        const request=requests.find(item=>item.id===button.dataset.id);
+        const selected=request&&getTeam(request.teamId);
+        const members=Array.isArray(request?.teamMembers)?request.teamMembers:[];
+        if(!selected){toast("The selected team could not be found.");return;}
+        if(members.length!==2||members.some(name=>typeof name!=="string"||!name.trim())){
+          toast("This request needs two valid team member names.");
+          return;
+        }
+        if(members[0].trim().toLowerCase()===members[1].trim().toLowerCase()){
+          toast("The two team member names must be different.");
+          return;
+        }
+
+        const oldName=selected.name;
+        const oldMembers=Array.isArray(selected.teamMembers)?[...selected.teamMembers]:[];
+        selected.name=request.suggestedName;
+        selected.teamMembers=members.map(name=>name.trim());
+        try{
+          await persist();
+          render();
+        }catch(error){
+          selected.name=oldName;
+          selected.teamMembers=oldMembers;
+          render();
+          toast("Could not approve ("+(error?.code||"unknown")+").");
+          return;
+        }
+
+        try{
+          await deleteDoc(doc(requestsRef,button.dataset.id));
+          toast("Team name and members approved and updated.");
+        }catch(error){
+          console.error("Team updated, but request removal failed:",error);
+          toast("Team updated, but the pending request could not be removed.");
+        }
       });
     });
+
     $("requestList").querySelectorAll(".reject-btn").forEach(button=>{
       button.addEventListener("click",async()=>{
         if(!confirm("Reject this team-name request?"))return;
         try{await deleteDoc(doc(requestsRef,button.dataset.id));toast("Request rejected.");}
-        catch{toast("Could not reject this request.");}
+        catch(error){console.error(error);toast("Could not reject ("+(error?.code||"unknown")+").");}
       });
     });
-  },error=>{console.error(error);$("requestList").innerHTML='<div class="empty">Could not load requests. Check Firestore rules.</div>';});
+  },error=>{
+    console.error(error);
+    $("requestList").innerHTML='<div class="empty">Could not load requests. Check Firestore rules.</div>';
+  });
 }
 function initRealtime(){
   tournamentUnsubscribe=onSnapshot(tournamentRef,snapshot=>{
     if(snapshot.exists()){
       const data=snapshot.data();
       if(Array.isArray(data.teams)&&data.teams.length===6&&data.teams.every(t=>t.id&&typeof t.name==="string")){
-        teams=data.teams.map(t=>({id:t.id,name:t.name}));
+        teams=data.teams.map(t=>({
+          id:t.id,
+          name:t.name,
+          teamMembers:Array.isArray(t.teamMembers)?t.teamMembers.filter(x=>typeof x==="string"):[]
+        }));
       }
       scores=data.scores&&typeof data.scores==="object"?data.scores:{};
     }else if(isAdmin){
@@ -618,15 +672,48 @@ $("saveTeamsBtn").addEventListener("click",async()=>{
   try{await persist();render();toast("Official team names saved.");}
   catch{toast("Could not save team names.");}
 });
+$("resetTeamNamesBtn").addEventListener("click",async()=>{
+  if(!isAdmin)return;
+  if(!confirm("Restore all six original team names and clear the custom team-member subtitles? Scores will not be changed."))return;
+  const previous=teams.map(t=>({
+    ...t,
+    teamMembers:Array.isArray(t.teamMembers)?[...t.teamMembers]:[]
+  }));
+  teams=DEFAULT_TEAMS.map(t=>({id:t.id,name:t.name,teamMembers:[]}));
+  try{
+    await persist();
+    render();
+    toast("Original team names restored. Scores were kept.");
+  }catch(error){
+    teams=previous;
+    render();
+    toast("Could not reset team names ("+(error?.code||"unknown")+").");
+  }
+});
 $("requestForm").addEventListener("submit",async event=>{
   event.preventDefault();
   const form=event.currentTarget;
   const teamId=$("requestTeam").value;
   const suggestedName=$("suggestedName").value.trim();
+  const memberOne=$("memberOne").value.trim();
+  const memberTwo=$("memberTwo").value.trim();
   const requesterName=$("requesterName").value.trim();
-  if(!teamId||!suggestedName){toast("Choose your team and enter a suggested name.");return;}
+  if(!teamId||!suggestedName||!memberOne||!memberTwo){
+    toast("Enter your team, suggested name and both team members.");
+    return;
+  }
+  if(memberOne.toLowerCase()===memberTwo.toLowerCase()){
+    toast("Enter two different team members.");
+    return;
+  }
   try{
-    await addDoc(requestsRef,{teamId,suggestedName,requesterName,createdAt:new Date()});
+    await addDoc(requestsRef,{
+      teamId,
+      suggestedName,
+      teamMembers:[memberOne,memberTwo],
+      requesterName,
+      createdAt:new Date()
+    });
     form.reset();
     toast("Name request sent to the admin.");
   }catch(error){
