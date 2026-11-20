@@ -627,7 +627,10 @@ $("requestForm").addEventListener("submit",async event=>{
   try{
     await addDoc(requestsRef,{teamId,suggestedName,requesterName,createdAt:new Date()});
     event.currentTarget.reset();toast("Name request sent to the admin.");
-  }catch(error){console.error(error);toast("Could not submit. Check Firestore rules and connection.");}
+  }catch(error){
+    console.error("Firestore name request failed:",error?.code,error?.message,error);
+    toast("Could not submit ("+(error?.code||"unknown")+"). Check Firestore rules.");
+  }
 });
 $("shareLinkBtn").addEventListener("click",async()=>{
   const url=location.href.split("#")[0];
