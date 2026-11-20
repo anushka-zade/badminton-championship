@@ -15,7 +15,7 @@ service cloud.firestore {
         && request.resource.data.name is string
         && request.resource.data.name.size() >= 1
         && request.resource.data.name.size() <= 40
-        && request.resource.data.name.matches(".*\\S.*")
+        && request.resource.data.name.trim() != ""
         && request.resource.data.updatedAt is timestamp;
     }
 
