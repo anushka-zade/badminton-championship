@@ -146,7 +146,7 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
   <span class="status-dot" id="statusDot"></span>
   <div class="admin-copy">
     <b id="accessTitle">Public scoreboard</b>
-    <small id="accessMessage">Everyone can view. Only Admin can manage results and official team names.</small>
+    <small id="accessMessage">Anyone can update team names. Only Admin can update scores.</small>
   </div>
   <span id="syncStatus">Connecting…</span>
 </div>
@@ -174,8 +174,8 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
 <section id="teams" class="active">
   <div class="heading"><div><h2>Meet the teams</h2><p>Choose any team name you like and save it. Team names are editable by everyone; only Admin can update scores.</p></div></div>
   <div class="team-grid" id="teamGrid"></div>
-  <div class="actions admin-tools" id="resetTeamTools">
-    <button class="btn danger" id="resetTeamNamesBtn" type="button">Restore original team names</button>
+  <div class="actions" id="resetTeamTools">
+    <button class="btn ghost" id="resetTeamNamesBtn" type="button">Restore original team names</button>
   </div>
   <div class="notice"><b>Championship format:</b> Every team plays every other team once. The top four teams qualify for the semifinals. The semifinal winners compete in the Grand Final.</div>
 </section>
@@ -495,7 +495,6 @@ function renderPlayoffs(){
 }
 function render(){
   renderTeams();renderFixtures();renderStandings();renderPlayoffs();
-  $("resetTeamTools").style.display=isAdmin?"flex":"none";
   $("resetScoresBtn").style.display=isAdmin?"inline-flex":"none";
   $("showLoginBtn").hidden=!!auth.currentUser;
   $("logoutBtn").hidden=!auth.currentUser;
@@ -622,7 +621,6 @@ $("verifyBtn").addEventListener("click",async()=>{
 });
 $("logoutBtn").addEventListener("click",()=>signOut(auth));
 $("resetTeamNamesBtn").addEventListener("click",async()=>{
-  if(!isAdmin)return;
   if(!confirm("Restore all six original team names? Fixed team members and match scores will not be changed."))return;
   try{
     await Promise.all(DEFAULT_TEAMS.map(team=>
