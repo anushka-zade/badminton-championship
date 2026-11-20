@@ -8,35 +8,36 @@ service cloud.firestore {
         && request.auth.token.email_verified == true;
     }
 
-    match /tournaments/friends-badminton {
-      // Public read-only scoreboard.
-      allow read: if true;
+    function isValidTeamName(teamId) {
+      return teamId in ["T1", "T2", "T3", "T4", "T5", "T6"]
+        && request.resource.data.keys().hasAll(["name", "updatedAt"])
+        && request.resource.data.keys().hasOnly(["name", "updatedAt"])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 40
+        && request.resource.data.name.matches(".*\\S.*")
+        && request.resource.data.updatedAt is timestamp;
+    }
 
-      // Only the verified admin can create, edit or delete official tournament data.
+    match /tournaments/friends-badminton {
+      // Everyone can view tournament scores. Only the verified admin can write them.
+      allow read: if true;
       allow create, update, delete: if isAdmin();
 
+      // Lock down the retired public suggestion/approval queue.
       match /nameRequests/{requestId} {
-        // Only the admin can view submitted name requests.
-        allow read: if isAdmin();
+        allow read, write: if false;
+      }
 
-        // Public can submit a suggested team name; team members are fixed in the website.
-        allow create: if request.resource.data.keys().hasAll([
-            "teamId", "suggestedName", "requesterName", "createdAt"
-          ])
-          && request.resource.data.keys().hasOnly([
-            "teamId", "suggestedName", "requesterName", "createdAt"
-          ])
-          && request.resource.data.teamId is string
-          && request.resource.data.teamId in ["T1", "T2", "T3", "T4", "T5", "T6"]
-          && request.resource.data.suggestedName is string
-          && request.resource.data.suggestedName.size() > 0
-          && request.resource.data.suggestedName.size() <= 40
-          && request.resource.data.requesterName is string
-          && request.resource.data.requesterName.size() <= 40
-          && request.resource.data.createdAt is timestamp;
-        // Only the verified admin can approve or reject requests.
-        allow update, delete: if isAdmin();
+      // Public users may update only a validated team display name.
+      // This collection is separate from the admin-only score document.
+      match /teamNames/{teamId} {
+        allow read: if true;
+        allow create, update: if isValidTeamName(teamId);
+        allow delete: if isAdmin();
       }
     }
+
+    // Any other Firestore path is denied by default.
   }
 }
