@@ -200,7 +200,7 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
   <div class="heading"><div><h2>League fixtures & scores</h2><p>All 15 league matches · Scores entered by admin.</p></div></div>
   <div id="fixtureList"></div>
   <div class="actions"><button class="btn" id="shareLinkBtn" type="button">Copy website link</button><button class="btn danger admin-tools" id="resetScoresBtn" type="button">Reset all scores</button></div>
-  <div class="notice"><b>Match format:</b> One game to 15 points. Rally scoring. At 14–14, the next point wins — no deuce or advantage.</div>
+  <div class="notice"><b>Match format:</b> One game to 21 points. Rally scoring. At 20–20, the next point wins (21–20). No advantage or extra points.</div>
 </section>
 
 <section id="standings">
@@ -236,9 +236,9 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
   <div class="panel">
     <ol class="rule-list">
       <li><span class="rule-num">01</span><span><b>League stage:</b> All six teams play each of the other five teams once. There are 15 league matches.</span></li>
-      <li><span class="rule-num">02</span><span><b>Match format:</b> Every match is one game to 15 points.</span></li>
+      <li><span class="rule-num">02</span><span><b>Match format:</b> Every match is one game to 21 points.</span></li>
       <li><span class="rule-num">03</span><span><b>Scoring:</b> Rally scoring will be followed.</span></li>
-      <li><span class="rule-num">04</span><span><b>Golden point:</b> At 14–14, the next point wins the match. There will be no deuce or advantage.</span></li>
+      <li><span class="rule-num">04</span><span><b>Golden point:</b> At 20–20, the next point wins the match (21–20). There is no advantage or extra point.</span></li>
       <li><span class="rule-num">05</span><span><b>League points:</b> 2 points for a win and 0 points for a loss. No draws.</span></li>
       <li><span class="rule-num">06</span><span><b>Semifinals:</b> The top four teams qualify. Rank 1 plays Rank 4, and Rank 2 plays Rank 3.</span></li>
       <li><span class="rule-num">07</span><span><b>Grand Final:</b> The semifinal winners compete for the championship. The final winner is the tournament champion.</span></li>
@@ -330,7 +330,7 @@ function toast(message){
 function isValidCompletedScore(s){
   if(s.a===""||s.b==="") return true;
   const a=Number(s.a),b=Number(s.b);
-  return a!==b && Math.max(a,b)===15 && Math.min(a,b)>=0 && Math.min(a,b)<=14;
+  return a!==b && Math.max(a,b)===21 && Math.min(a,b)>=0 && Math.min(a,b)<=20;
 }
 function completedLeagueMatches(){
   return matches.filter(m=>getScore(m.id).a!==""&&getScore(m.id).b!=="");
@@ -395,7 +395,7 @@ function renderMatchCard(match, label="LEAGUE"){
   const s=getScore(match.id),win=matchWinner(match);
   const a=getTeam(match.a),b=getTeam(match.b);
   const scoreField=(side,value)=>isAdmin
-    ? `<input class="score-input" type="number" min="0" max="15" step="1" inputmode="numeric" pattern="[0-9]*" aria-label="${match.id} ${side} score" data-match="${match.id}" data-side="${side}" value="${escapeHtml(value)}">`
+    ? `<input class="score-input" type="number" min="0" max="21" step="1" inputmode="numeric" pattern="[0-9]*" aria-label="${match.id} ${side} score" data-match="${match.id}" data-side="${side}" value="${escapeHtml(value)}">`
     : `<strong class="score-read">${value===""?"–":escapeHtml(value)}</strong>`;
   return `<article class="match-card">
     <div class="match-top"><span class="match-id">${match.id} · ${label}</span><span class="match-meta">Round ${match.round??"—"} · Court ${match.court??"—"}</span></div>
@@ -454,7 +454,7 @@ function renderPlayoffs(){
     const match={id,...pair};
     const s=getScore(id),win=matchWinner(match);
     const scoreField=(side,value)=>isAdmin
-      ? `<input class="score-input" type="number" min="0" max="15" step="1" inputmode="numeric" aria-label="${id} ${side} score" data-match="${id}" data-side="${side}" value="${escapeHtml(value)}">`
+      ? `<input class="score-input" type="number" min="0" max="21" step="1" inputmode="numeric" aria-label="${id} ${side} score" data-match="${id}" data-side="${side}" value="${escapeHtml(value)}">`
       : `<strong class="score-read">${value===""?"–":escapeHtml(value)}</strong>`;
     return `<article class="match-card playoff-card">
       <div class="playoff-title"><b>${title}</b><span>Knockout · Single game</span></div>
@@ -513,13 +513,13 @@ async function onScoreChange(event){
   if(!isAdmin)return;
   const input=event.currentTarget,id=input.dataset.match,side=input.dataset.side;
   const raw=input.value.trim();
-  if(raw!==""&&(!/^\d+$/.test(raw)||Number(raw)<0||Number(raw)>15)){
-    toast("Enter a whole-number score from 0 to 15.");input.value=getScore(id)[side];return;
+  if(raw!==""&&(!/^\d+$/.test(raw)||Number(raw)<0||Number(raw)>21)){
+    toast("Enter a whole-number score from 0 to 21.");input.value=getScore(id)[side];return;
   }
   const previous=getScore(id);
   const next={...previous,[side]:raw};
   if(!isValidCompletedScore(next)){
-    toast("A completed match must be won at 15. At 14–14, play the golden point.");input.value=previous[side];return;
+    toast("A completed match must be won at 21. At 20–20, play the golden point.");input.value=previous[side];return;
   }
   scores={...scores,[id]:next};
   try{await persist();render();}
