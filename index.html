@@ -63,6 +63,9 @@ section.active{display:block}
 .team-name{font-size:13px;font-weight:850;overflow-wrap:anywhere}
 .team-edit{flex:1;min-width:0}
 .team-edit input{font-weight:750}
+.team-name-form{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.team-name-form input{flex:1;min-width:0}
+.team-name-form .btn{min-height:38px;padding:7px 10px}
 .team-meta{font-size:10px;color:var(--muted);margin-top:2px}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:30px;background:#173a35;color:var(--green);font-size:9px;font-weight:900;white-space:nowrap}
 .badge.gold{background:#3a321f;color:var(--gold)}
@@ -107,10 +110,6 @@ td strong{font-size:12px}
 .champion .trophy{font-size:26px}
 .champion small{display:block;color:var(--gold);font-weight:900;letter-spacing:.12em}
 .champion b{display:block;font-size:19px;margin-top:4px}
-.request-form{display:grid;gap:10px}
-.request-list{display:grid;gap:9px}
-.request-item{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.request-item .actions{margin:0}
 .rule-list{padding:0;margin:0;list-style:none}
 .rule-list li{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);font-size:12px}
 .rule-list li:last-child{border:0}
@@ -124,9 +123,7 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
  .hero{padding:30px}
  .team-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .standing-list{grid-template-columns:repeat(2,minmax(0,1fr))}
- .request-form{grid-template-columns:1fr 1fr;align-items:end}
- .request-form .wide{grid-column:1/-1}
- .score-input{width:48px}
+  .score-input{width:48px}
  .versus{grid-template-columns:minmax(0,1fr) 48px 24px 48px minmax(0,1fr)}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -171,29 +168,16 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
   <button class="tab" data-tab="matches" type="button">Fixtures & Scores</button>
   <button class="tab" data-tab="standings" type="button">League Points</button>
   <button class="tab" data-tab="knockouts" type="button">Knockouts</button>
-  <button class="tab" data-tab="requests" type="button">Name Requests</button>
   <button class="tab" data-tab="rules" type="button">Rules</button>
 </nav>
 
 <section id="teams" class="active">
-  <div class="heading"><div><h2>Meet the teams</h2><p>Official team names are managed by the admin.</p></div></div>
+  <div class="heading"><div><h2>Meet the teams</h2><p>Choose any team name you like and save it. Team names are editable by everyone; only Admin can update scores.</p></div></div>
   <div class="team-grid" id="teamGrid"></div>
-  <div class="actions admin-tools" id="saveTeamTools">
-    <button class="btn primary" id="saveTeamsBtn" type="button">Save official team names</button>
+  <div class="actions admin-tools" id="resetTeamTools">
     <button class="btn danger" id="resetTeamNamesBtn" type="button">Restore original team names</button>
   </div>
   <div class="notice"><b>Championship format:</b> Every team plays every other team once. The top four teams qualify for the semifinals. The semifinal winners compete in the Grand Final.</div>
-
-  <div class="heading"><div><h2>Suggest a team name</h2><p>Requests go to Admin for approval.</p></div></div>
-  <div class="panel">
-    <form id="requestForm" class="request-form">
-      <label class="field">Your team<select id="requestTeam" required><option value="">Select your team</option></select></label>
-      <label class="field">Suggested team name<input id="suggestedName" maxlength="40" required placeholder="Enter your team name"></label>
-      <label class="field">Your name (optional)<input id="requesterName" maxlength="40" placeholder="Your name"></label>
-      <div class="wide"><button class="btn primary" type="submit">Submit name request</button></div>
-    </form>
-    <p class="sub">Want to change your team name? Please contact admin. Official names change only after approval.</p>
-  </div>
 </section>
 
 <section id="matches">
@@ -222,15 +206,6 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
   <div class="notice">Semi-final 1: Rank 1 vs Rank 4. Semi-final 2: Rank 2 vs Rank 3. The two semifinal winners meet in the Grand Final.</div>
 </section>
 
-<section id="requests">
-  <div class="heading"><div><h2>Team-name requests</h2><p>Players can submit suggestions; only the admin can approve them.</p></div></div>
-  <div class="panel admin-tools" id="adminRequestPanel">
-    <div class="eyebrow">PENDING REQUESTS</div>
-    <div id="requestList" class="request-list" style="margin-top:8px"><div class="empty">No pending requests.</div></div>
-  </div>
-  <div class="panel" id="requestHelp"><div class="sub">To suggest a name, use the form in the Teams section. Requests are visible to the admin only.</div></div>
-</section>
-
 <section id="rules">
   <div class="heading"><div><h2>Championship rules</h2><p>Simple, fair and competitive.</p></div></div>
   <div class="panel">
@@ -242,8 +217,8 @@ footer{text-align:center;color:#8292a8;font-size:10px;padding:25px 0 6px}
       <li><span class="rule-num">05</span><span><b>Maximum score:</b> The score is capped at 30 points.</span></li>
       <li><span class="rule-num">06</span><span><b>Semifinals:</b> The top four teams qualify. Rank 1 plays Rank 4, and Rank 2 plays Rank 3.</span></li>
       <li><span class="rule-num">07</span><span><b>Grand Final:</b> The semifinal winners compete for the championship. The final winner is the tournament champion.</span></li>
-      <li><span class="rule-num">08</span><span><b>Leaderboard:</b> Teams are ranked by league points, head-to-head record, points difference and points scored. A golden-point decider resolves any remaining tie affecting qualification.</span></li>
-      <li><span class="rule-num">09</span><span><b>Team names:</b> To change your team name, please contact admin. Changes require admin approval.</span></li>
+      <li><span class="rule-num">08</span><span><b>Leaderboard:</b> Teams are ranked by league points, head-to-head record, points difference and points scored. The organiser may arrange a deciding match if a tie still affects qualification.</span></li>
+      <li><span class="rule-num">09</span><span><b>Team names:</b> Teams can enter and update their own display names directly on the website.</span></li>
       <li><span class="rule-num">10</span><span><b>Fair play:</b> Standard badminton doubles rules apply. The organiser makes the final call on disputes.</span></li>
       <li><span class="rule-num">11</span><span><b>Prizes:</b> Winner and runner-up prizes will be announced separately.</span></li>
     </ol>
@@ -261,8 +236,7 @@ import {
   sendEmailVerification, signOut
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
-  getFirestore, doc, onSnapshot, setDoc, collection, addDoc,
-  deleteDoc
+  getFirestore, doc, onSnapshot, setDoc, collection
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -303,13 +277,15 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const tournamentRef = doc(db,"tournaments","friends-badminton");
-const requestsRef = collection(db,"tournaments","friends-badminton","nameRequests");
+const teamNamesRef = collection(db,"tournaments","friends-badminton","teamNames");
 
-let teams = DEFAULT_TEAMS.map(t=>({...t}));
+let teams = DEFAULT_TEAMS.map(t=>({...t,teamMembers:[...t.teamMembers]}));
 let scores = {};
 let isAdmin = false;
-let requestUnsubscribe = null;
 let tournamentUnsubscribe = null;
+let teamNamesUnsubscribe = null;
+let legacyTeamNames = {};
+let publicTeamNames = {};
 let saveQueue = Promise.resolve();
 
 const $ = id => document.getElementById(id);
@@ -377,12 +353,21 @@ function standings(){
     a.id.localeCompare(b.id)
   );
 }
+function applyTeamNames(){
+  teams=DEFAULT_TEAMS.map(original=>({
+    ...original,
+    name:publicTeamNames[original.id]||legacyTeamNames[original.id]||original.name,
+    teamMembers:[...original.teamMembers]
+  }));
+}
 function renderTeams(){
   $("teamGrid").innerHTML=teams.map(t=>{
     const fixedMembers=DEFAULT_TEAMS.find(original=>original.id===t.id)?.teamMembers||[];
-    const nameMarkup=isAdmin
-      ? '<input class="team-name-input" data-team="'+escapeHtml(t.id)+'" maxlength="60" aria-label="Official name for '+escapeHtml(t.id)+'" value="'+escapeHtml(t.name)+'">'
-      : '<div class="team-name">'+escapeHtml(t.name)+'</div>';
+    const nameMarkup=
+      '<form class="team-name-form" data-team="'+escapeHtml(t.id)+'">'+
+        '<input class="team-name-input" maxlength="40" required aria-label="Team name for '+escapeHtml(t.id)+'" value="'+escapeHtml(t.name)+'">'+
+        '<button class="btn primary" type="submit">Save</button>'+
+      '</form>';
     const memberSubtitle=fixedMembers.map((member,index)=>
       '<div class="team-meta">Member '+(index+1)+': '+escapeHtml(member)+'</div>'
     ).join("");
@@ -392,8 +377,36 @@ function renderTeams(){
       '<span class="badge gold">5 matches</span>'+
     '</article>';
   }).join("");
-  $("requestTeam").innerHTML='<option value="">Select your team</option>'+
-    teams.map(t=>'<option value="'+escapeHtml(t.id)+'">Team '+escapeHtml(t.id)+' · '+escapeHtml(t.name)+'</option>').join("");
+
+  $("teamGrid").querySelectorAll(".team-name-form").forEach(form=>{
+    form.addEventListener("submit",async event=>{
+      event.preventDefault();
+      const teamId=form.dataset.team;
+      const input=form.querySelector(".team-name-input");
+      const button=form.querySelector("button[type=submit]");
+      const name=input.value.trim();
+      if(!teamId||!DEFAULT_TEAMS.some(t=>t.id===teamId)){
+        toast("Invalid team selection.");
+        return;
+      }
+      if(!name||name.length>40){
+        toast("Enter a team name between 1 and 40 characters.");
+        return;
+      }
+      button.disabled=true;
+      try{
+        await setDoc(doc(teamNamesRef,teamId),{name,updatedAt:new Date()});
+        publicTeamNames[teamId]=name;
+        applyTeamNames();
+        render();
+        toast("Team name updated.");
+      }catch(error){
+        console.error("Team name update failed:",error?.code,error?.message,error);
+        button.disabled=false;
+        toast("Could not update team name ("+(error?.code||"unknown")+"). Check Firestore rules.");
+      }
+    });
+  });
 }
 function renderMatchCard(match, label="LEAGUE"){
   const s=getScore(match.id),win=matchWinner(match);
@@ -482,10 +495,8 @@ function renderPlayoffs(){
 }
 function render(){
   renderTeams();renderFixtures();renderStandings();renderPlayoffs();
-  $("saveTeamTools").style.display=isAdmin?"flex":"none";
+  $("resetTeamTools").style.display=isAdmin?"flex":"none";
   $("resetScoresBtn").style.display=isAdmin?"inline-flex":"none";
-  $("adminRequestPanel").style.display=isAdmin?"block":"none";
-  $("requestHelp").style.display=isAdmin?"none":"block";
   $("showLoginBtn").hidden=!!auth.currentUser;
   $("logoutBtn").hidden=!auth.currentUser;
   $("verifyBtn").hidden=!(auth.currentUser&&!auth.currentUser.emailVerified&&auth.currentUser.email?.toLowerCase()===ADMIN_EMAIL);
@@ -496,7 +507,7 @@ async function persist(){
     error.code="admin/not-authorized";
     throw error;
   }
-  const snapshot={teams,scores,updatedAt:Date.now()};
+  const snapshot={scores,updatedAt:new Date()};
   // Recover the queue after a failed write so later attempts can still succeed.
   const write=saveQueue.catch(()=>{}).then(()=>setDoc(tournamentRef,snapshot,{merge:true}));
   saveQueue=write;
@@ -533,97 +544,58 @@ function setAccess(title,message,status,ok=true){
   $("accessTitle").textContent=title;$("accessMessage").textContent=message;
   $("syncStatus").textContent=status;$("statusDot").style.background=ok?"var(--green)":"var(--red)";
 }
-function listenForRequests(){
-  if(requestUnsubscribe){requestUnsubscribe();requestUnsubscribe=null;}
-  if(!isAdmin)return;
-  requestUnsubscribe=onSnapshot(requestsRef,snapshot=>{
-    const requests=snapshot.docs.map(d=>({id:d.id,...d.data()}));
-    $("requestList").innerHTML=requests.length?requests.map(r=>{
-      const fixedMembers=DEFAULT_TEAMS.find(original=>original.id===r.teamId)?.teamMembers||[];
-      return '<article class="panel request-item">'+
-        '<div style="min-width:0">'+
-          '<b style="font-size:12px">'+escapeHtml(r.suggestedName)+'</b>'+
-          '<div class="sub">Team: '+escapeHtml(r.teamId)+' · Current name: '+escapeHtml(getTeam(r.teamId)?.name||"Team")+'</div>'+
-          '<div class="sub">Members: '+escapeHtml(fixedMembers[0]||"")+' & '+escapeHtml(fixedMembers[1]||"")+'</div>'+
-          '<div class="sub">Requested by: '+escapeHtml(r.requesterName||"Player")+'</div>'+
-        '</div>'+
-        '<div class="actions">'+
-          '<button class="btn primary approve-btn" data-id="'+escapeHtml(r.id)+'">Approve</button>'+
-          '<button class="btn danger reject-btn" data-id="'+escapeHtml(r.id)+'">Reject</button>'+
-        '</div>'+
-      '</article>';
-    }).join(""):'<div class="empty">No pending requests.</div>';
-
-    $("requestList").querySelectorAll(".approve-btn").forEach(button=>{
-      button.addEventListener("click",async()=>{
-        const request=requests.find(item=>item.id===button.dataset.id);
-        const selected=request&&getTeam(request.teamId);
-        if(!selected){toast("The selected team could not be found.");return;}
-        const oldName=selected.name;
-        selected.name=request.suggestedName;
-        try{
-          await persist();
-          render();
-        }catch(error){
-          selected.name=oldName;
-          render();
-          toast("Could not approve ("+(error?.code||"unknown")+").");
-          return;
-        }
-        try{
-          await deleteDoc(doc(requestsRef,button.dataset.id));
-          toast("Team name approved and updated. Team members remain unchanged.");
-        }catch(error){
-          console.error("Team updated, but request removal failed:",error);
-          toast("Team updated, but the pending request could not be removed.");
-        }
-      });
-    });
-
-    $("requestList").querySelectorAll(".reject-btn").forEach(button=>{
-      button.addEventListener("click",async()=>{
-        if(!confirm("Reject this team-name request?"))return;
-        try{await deleteDoc(doc(requestsRef,button.dataset.id));toast("Request rejected.");}
-        catch(error){console.error(error);toast("Could not reject ("+(error?.code||"unknown")+").");}
-      });
-    });
-  },error=>{
-    console.error(error);
-    $("requestList").innerHTML='<div class="empty">Could not load requests. Check Firestore rules.</div>';
-  });
-}
 function initRealtime(){
+  teamNamesUnsubscribe=onSnapshot(teamNamesRef,snapshot=>{
+    publicTeamNames={};
+    snapshot.docs.forEach(teamDoc=>{
+      const data=teamDoc.data();
+      if(DEFAULT_TEAMS.some(t=>t.id===teamDoc.id)&&typeof data.name==="string"){
+        publicTeamNames[teamDoc.id]=data.name;
+      }
+    });
+    applyTeamNames();
+    render();
+  },error=>{
+    console.error("Team-name listener failed:",error);
+    toast("Could not load team names. Check Firestore rules.");
+  });
+
   tournamentUnsubscribe=onSnapshot(tournamentRef,snapshot=>{
+    legacyTeamNames={};
     if(snapshot.exists()){
       const data=snapshot.data();
-      if(Array.isArray(data.teams)&&data.teams.length===6&&data.teams.every(t=>t.id&&typeof t.name==="string")){
-        teams=data.teams.map(t=>({
-          id:t.id,
-          name:t.name,
-          teamMembers:[...(DEFAULT_TEAMS.find(original=>original.id===t.id)?.teamMembers||[])]
-        }));
+      if(Array.isArray(data.teams)){
+        data.teams.forEach(team=>{
+          if(DEFAULT_TEAMS.some(t=>t.id===team.id)&&typeof team.name==="string"){
+            legacyTeamNames[team.id]=team.name;
+          }
+        });
       }
       scores=data.scores&&typeof data.scores==="object"?data.scores:{};
-    }else if(isAdmin){
-      persist().catch(()=>{});
+    }else{
+      scores={};
     }
+    applyTeamNames();
     render();
     setAccess(isAdmin?"Admin mode":"Public live scoreboard",
-      isAdmin?"You can edit official team names and match scores.":"View-only access. Scores and approved team names update automatically.",
+      isAdmin?"You can update match scores. Team names are editable by everyone.":"Anyone can update team names. Only the verified Admin can update scores.",
       "Connected · live updates on",true);
   },error=>{
     console.error(error);
     setAccess("Connection issue","Could not load shared tournament data.","Check Firebase setup",false);
   });
+
   onAuthStateChanged(auth,user=>{
     isAdmin=!!(user&&user.emailVerified&&user.email?.toLowerCase()===ADMIN_EMAIL);
-    render();listenForRequests();
-    if(user&&!isAdmin){
+    render();
+    if(user&&!isAdmin&&user.email?.toLowerCase()===ADMIN_EMAIL){
       setAccess("Email verification required","Verify the admin email, then sign out and sign in again.","View-only",false);
+    }else if(user&&!isAdmin){
+      setAccess("Public scoreboard","This account does not have admin permissions. Scores remain read-only.","View-only",true);
     }else if(isAdmin){
-      setAccess("Admin mode","You can edit official team names and match scores.","Admin signed in",true);
+      setAccess("Admin mode","You can update match scores. Team names are editable by everyone.","Admin signed in",true);
     }else{
-      setAccess("Public scoreboard","Everyone can view. Only Admin can manage results and official team names.","Connecting…",true);
+      setAccess("Public scoreboard","Anyone can update team names. Only the verified Admin can update scores.","Connecting…",true);
     }
   });
 }
@@ -649,47 +621,20 @@ $("verifyBtn").addEventListener("click",async()=>{
   catch(error){console.error(error);toast("Could not send verification email.");}
 });
 $("logoutBtn").addEventListener("click",()=>signOut(auth));
-$("saveTeamsBtn").addEventListener("click",async()=>{
-  if(!isAdmin)return;
-  document.querySelectorAll(".team-name-input").forEach(input=>{
-    const t=getTeam(input.dataset.team),name=input.value.trim();
-    if(t&&name)t.name=name;
-  });
-  try{await persist();render();toast("Official team names saved.");}
-  catch{toast("Could not save team names.");}
-});
 $("resetTeamNamesBtn").addEventListener("click",async()=>{
   if(!isAdmin)return;
   if(!confirm("Restore all six original team names? Fixed team members and match scores will not be changed."))return;
-  const previous=teams.map(t=>({
-    ...t,
-    teamMembers:Array.isArray(t.teamMembers)?[...t.teamMembers]:[]
-  }));
-  teams=DEFAULT_TEAMS.map(t=>({...t,teamMembers:[...t.teamMembers]}));
   try{
-    await persist();
+    await Promise.all(DEFAULT_TEAMS.map(team=>
+      setDoc(doc(teamNamesRef,team.id),{name:team.name,updatedAt:new Date()})
+    ));
+    publicTeamNames=Object.fromEntries(DEFAULT_TEAMS.map(team=>[team.id,team.name]));
+    applyTeamNames();
     render();
     toast("Original team names restored. Team members and scores were kept.");
   }catch(error){
-    teams=previous;
-    render();
+    console.error("Could not restore team names:",error);
     toast("Could not reset team names ("+(error?.code||"unknown")+").");
-  }
-});
-$("requestForm").addEventListener("submit",async event=>{
-  event.preventDefault();
-  const form=event.currentTarget;
-  const teamId=$("requestTeam").value;
-  const suggestedName=$("suggestedName").value.trim();
-  const requesterName=$("requesterName").value.trim();
-  if(!teamId||!suggestedName){toast("Choose your team and enter a suggested name.");return;}
-  try{
-    await addDoc(requestsRef,{teamId,suggestedName,requesterName,createdAt:new Date()});
-    form.reset();
-    toast("Name request sent to the admin.");
-  }catch(error){
-    console.error("Firestore name request failed:",error?.code,error?.message,error);
-    toast("Could not submit ("+(error?.code||"unknown")+"). Check Firestore rules.");
   }
 });
 $("shareLinkBtn").addEventListener("click",async()=>{
